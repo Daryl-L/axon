@@ -123,6 +123,8 @@ impl PriorityPool {
             txs.for_each(|p_tx| q.push(p_tx));
         }
 
+        log::info!("real queue len: {}", q.len());
+
         ret.extend(
             q.iter()
                 .filter_map(|ptr| {

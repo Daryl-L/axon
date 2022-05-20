@@ -194,12 +194,15 @@ where
         gas_limit: U256,
         tx_num_limit: u64,
     ) -> ProtocolResult<Vec<Hash>> {
-        log::info!(
-            "[core_mempool]: {:?} txs in map while package",
-            self.pool.len(),
-        );
         let inst = Instant::now();
         let txs = self.pool.package(gas_limit, tx_num_limit as usize);
+
+        log::info!(
+            "[core_mempool]: {} txs in map while package, package {}, limit {}",
+            self.pool.len(),
+            txs.len(),
+            tx_num_limit
+        );
 
         common_apm::metrics::mempool::MEMPOOL_PACKAGE_SIZE_VEC_STATIC
             .package
