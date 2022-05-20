@@ -108,8 +108,13 @@ impl PriorityPool {
 
         let _ = self.co_queue.push(tx_wrapper.ptr());
         self.occupy_nonce(tx_wrapper.ptr());
-        self.tx_map
-            .insert(tx_wrapper.hash(), tx_wrapper.into_signed_transaction());
+        if self
+            .tx_map
+            .insert(tx_wrapper.hash(), tx_wrapper.into_signed_transaction())
+            .is_some()
+        {
+            self.stock_len.fetch_sub(1, Ordering::AcqRel);
+        }
         Ok(())
     }
 
