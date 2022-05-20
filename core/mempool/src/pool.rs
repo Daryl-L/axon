@@ -69,8 +69,9 @@ impl PriorityPool {
 
     pub fn insert_system_script_tx(&self, stx: SignedTransaction) -> ProtocolResult<()> {
         let _flushing = self.flush_lock.read();
-        self.stock_len.fetch_add(1, Ordering::AcqRel);
-        self.sys_tx_bucket.insert(stx);
+        if self.sys_tx_bucket.insert(stx) {
+            self.stock_len.fetch_add(1, Ordering::AcqRel);
+        }
         Ok(())
     }
 
@@ -92,8 +93,6 @@ impl PriorityPool {
         // operation of tx insertion and flush.
         let _flushing = self.flush_lock.read();
 
-        let tx_wrapper = TxWrapper::from(stx);
-
         // Must flush co_queue here when it's full, otherwise, this tx may can't package
         // by self, because it will never insert to real_queue
         if !check_limit && self.co_queue.is_full() {
@@ -102,10 +101,14 @@ impl PriorityPool {
             txs.for_each(|p_tx| q.push(p_tx));
         }
 
-        let _ = self.co_queue.push(tx_wrapper.ptr());
-        self.occupy_nonce(tx_wrapper.ptr());
-        self.tx_map
-            .insert(tx_wrapper.hash(), tx_wrapper.into_signed_transaction());
+        let (ptr, tx) = TxWrapper::from(stx).into_parts();
+
+        if self.tx_map.insert(ptr.hash, tx).is_some() {
+            self.stock_len.fetch_sub(1, Ordering::AcqRel);
+        } else {
+            let _ = self.co_queue.push(Arc::clone(&ptr));
+            self.occupy_nonce(ptr);
+        }
         Ok(())
     }
 
@@ -245,14 +248,15 @@ impl SystemScriptTxBucket {
         }
     }
 
-    pub fn insert(&self, stx: SignedTransaction) {
+    pub fn insert(&self, stx: SignedTransaction) -> bool {
         let data = stx.transaction.unsigned.data.clone();
         self.hash_data_map
             .insert(stx.transaction.hash, data.clone());
         self.tx_buckets
             .entry(data)
             .or_insert_with(BTreeMap::new)
-            .insert(stx.transaction.hash, stx);
+            .insert(stx.transaction.hash, stx)
+            .is_none()
     }
 
     pub fn package(&self) -> Vec<Hash> {
