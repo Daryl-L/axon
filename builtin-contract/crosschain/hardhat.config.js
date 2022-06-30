@@ -22,7 +22,8 @@ task('deployTestToken', 'deploy test token on axon').addParam('private').setActi
   unsignedTx.nonce = await signer.getTransactionCount() + 1;
   const signedTx = await signer.signTransaction(unsignedTx);
   const tx = await hre.ethers.provider.sendTransaction(signedTx);
-  console.log(tx.hash);
+  const receipt = await tx.wait();
+  console.log(receipt);
 });
 
 task('crossAt', 'cross at').addParam('to').addParam('private').setAction(async (taskArgs, hre) => {
@@ -37,7 +38,8 @@ task('crossAt', 'cross at').addParam('to').addParam('private').setAction(async (
   unsignedTx.nonce = await signer.getTransactionCount() + 1;
   const signedTx = await signer.signTransaction(unsignedTx);
   const tx = await hre.ethers.provider.sendTransaction(signedTx);
-  console.log(tx.hash);
+  const receipt = await tx.wait();
+  console.log(receipt);
 });
 
 task('crossToken', 'cross token').addParam('to').addParam('token').addParam('amount').addParam('private').setAction(async (taskArgs, hre) => {
@@ -51,8 +53,14 @@ task('crossToken', 'cross token').addParam('to').addParam('token').addParam('amo
   unsignedTx.nonce = await signer.getTransactionCount() + 1;
   const signedTx = await signer.signTransaction(unsignedTx);
   const tx = await hre.ethers.provider.sendTransaction(signedTx);
-  console.log(tx.hash);
+  const receipt = await tx.wait();
+  console.log(receipt);
 });
+
+task('checkTxHash').addParam('hash').setAction(async (args, hre) => {
+  console.log('check tx hash:', args.hash);
+  console.log(await hre.ethers.provider.getTransaction(args.hash));
+})
 
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
@@ -65,6 +73,10 @@ module.exports = {
   networks: {
     axon: {
       url: 'http://13.113.146.156:8000',
+      accounts: [],
+    },
+    axon_native: {
+      url: 'http://127.0.0.1:8000',
       accounts: [],
     },
   },

@@ -752,6 +752,9 @@ pub fn generate_receipts_and_logs(
     txs: &[SignedTransaction],
     resp: &ExecResp,
 ) -> (Vec<Receipt>, Vec<Vec<Log>>) {
+    if !resp.tx_resp.is_empty() {
+        log::info!("[cross-chain] resp: {:?}", resp);
+    }
     let mut log_index = 0;
     let receipts = txs
         .iter()

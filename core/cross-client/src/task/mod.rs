@@ -145,6 +145,7 @@ where
     }
 
     async fn handle_reqs(&mut self, reqs: Requests) {
+        log::info!("[cross-chain] Requests: {:?}", reqs);
         if !self.validate_power {
             return;
         }
