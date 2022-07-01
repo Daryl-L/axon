@@ -21,8 +21,8 @@ task('deployTestToken', 'deploy test token on axon').addParam('private').setActi
   unsignedTx.nonce = await signer.getTransactionCount() + 1;
   const signedTx = await signer.signTransaction(unsignedTx);
   const tx = await hre.ethers.provider.sendTransaction(signedTx);
-  const recepient = await tx.wait();
-  console.log(recepient);
+  const receipt = await tx.wait();
+  console.log(receipt);
 });
 
 task('deployMirrorToken', 'deploy mirror token on axon').addParam('private').addParam('name').addParam('symbol').setAction(async (taskArgs, hre) => {
@@ -33,8 +33,8 @@ task('deployMirrorToken', 'deploy mirror token on axon').addParam('private').add
   unsignedTx.nonce = await signer.getTransactionCount() + 1;
   const signedTx = await signer.signTransaction(unsignedTx);
   const tx = await hre.ethers.provider.sendTransaction(signedTx);
-  const recepient = await tx.wait();
-  console.log(recepient);
+  const receipt = await tx.wait();
+  console.log(receipt);
 });
 
 task('crossAt', 'cross at').addParam('to').addParam('private').setAction(async (taskArgs, hre) => {
@@ -49,8 +49,8 @@ task('crossAt', 'cross at').addParam('to').addParam('private').setAction(async (
   unsignedTx.nonce = await signer.getTransactionCount() + 1;
   const signedTx = await signer.signTransaction(unsignedTx);
   const tx = await hre.ethers.provider.sendTransaction(signedTx);
-  const recepient = await tx.wait();
-  console.log(recepient);
+  const receipt = await tx.wait();
+  console.log(receipt);
 });
 
 task('crossToken', 'cross token').addParam('to').addParam('token').addParam('amount').addParam('private').setAction(async (taskArgs, hre) => {
@@ -64,7 +64,8 @@ task('crossToken', 'cross token').addParam('to').addParam('token').addParam('amo
   unsignedTx.nonce = await signer.getTransactionCount() + 1;
   const signedTx = await signer.signTransaction(unsignedTx);
   const tx = await hre.ethers.provider.sendTransaction(signedTx);
-  console.log(tx.hash);
+  const receipt = await tx.wait();
+  console.log(receipt);
 });
 
 task('grantWCKBRole').addParam('private').addParam('to').setAction(async (taskArgs, hre) => {
@@ -78,8 +79,8 @@ task('grantWCKBRole').addParam('private').addParam('to').setAction(async (taskAr
   unsignedTx.nonce = await signer.getTransactionCount() + 1;
   const signedTx = await signer.signTransaction(unsignedTx);
   const tx = await hre.ethers.provider.sendTransaction(signedTx);
-  const recepient = await tx.wait();
-  console.log(recepient);
+  const receipt = await tx.wait();
+  console.log(receipt);
 });
 
 task('mintCKB').addParam('private').addParam('amount').addParam('to').setAction(async (taskArgs, hre) => {
@@ -94,8 +95,8 @@ task('mintCKB').addParam('private').addParam('amount').addParam('to').setAction(
   unsignedTx.nonce = await signer.getTransactionCount() + 1;
   const signedTx = await signer.signTransaction(unsignedTx);
   const tx = await hre.ethers.provider.sendTransaction(signedTx);
-  const recepient = await tx.wait();
-  console.log(recepient);
+  const receipt = await tx.wait();
+  console.log(receipt);
 });
 
 task('wckbBalance').addParam('account').setAction(async (taskArgs, hre) => {
@@ -116,13 +117,18 @@ task('setTokenConfig').addParam('token').addParam('threshold').addParam('fee').a
   unsignedTx.nonce = await signer.getTransactionCount() + 1;
   const signedTx = await signer.signTransaction(unsignedTx);
   const tx = await hre.ethers.provider.sendTransaction(signedTx);
-  const recepient = await tx.wait();
-  console.log(recepient);
+  const receipt = await tx.wait();
+  console.log(receipt);
 });
 
 task('getTransaction').addParam('tx').setAction(async (taskArgs, hre) => {
   console.log(await hre.ethers.provider.getTransaction(taskArgs.tx));
 });
+
+task('checkTxHash').addParam('hash').setAction(async (args, hre) => {
+  console.log('check tx hash:', args.hash);
+  console.log(await hre.ethers.provider.getTransaction(args.hash));
+})
 
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
@@ -137,6 +143,10 @@ module.exports = {
       url: process.env.AXON_URL|| "",
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    axon_native: {
+      url: 'http://127.0.0.1:8000',
+      accounts: [],
     },
   },
 };
