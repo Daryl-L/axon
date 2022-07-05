@@ -57,7 +57,7 @@ task('crossToken', 'cross token').addParam('to').addParam('token').addParam('amo
   const abi = new hre.ethers.utils.Interface(require('./artifacts/contracts/crosschain.sol/CrossChain.json').abi);
   const signer =new hre.ethers.Wallet(taskArgs.private, hre.ethers.provider);
   let unsignedTx = {
-    data: abi.encodeFunctionData('crossTokenToCKB', [taskArgs.to, taskArgs.token, hre.ethers.utils.parseUnits(taskArgs.amount, 18)]),
+    data: abi.encodeFunctionData('crossTokenToCKB', [taskArgs.to, taskArgs.token, hre.ethers.BigNumber.from(taskArgs.amount)]),//hre.ethers.utils.parseUnits(taskArgs.amount, 18)]),
     to: '0xF67Bc4E50d1df92b0E4C61794A4517AF6a995CB2',
   };
   unsignedTx = await signer.populateTransaction(unsignedTx);
@@ -112,6 +112,36 @@ task('setTokenConfig').addParam('token').addParam('threshold').addParam('fee').a
   let unsignedTx = {
     data: abi.encodeFunctionData('setTokenConfig', [taskArgs.token, [hre.ethers.BigNumber.from(taskArgs.threshold), hre.ethers.BigNumber.from(taskArgs.fee)]]),
     to: hre.ethers.utils.getAddress('0xF67Bc4E50d1df92b0E4C61794A4517AF6a995CB2'),
+  };
+  unsignedTx = await signer.populateTransaction(unsignedTx);
+  unsignedTx.nonce = await signer.getTransactionCount() + 1;
+  const signedTx = await signer.signTransaction(unsignedTx);
+  const tx = await hre.ethers.provider.sendTransaction(signedTx);
+  const receipt = await tx.wait();
+  console.log(receipt);
+});
+
+task('setWCKBMin').addParam('amount').addParam('private').setAction(async (taskArgs, hre) => {
+  const abi = new hre.ethers.utils.Interface(require('./artifacts/contracts/crosschain.sol/CrossChain.json').abi);
+  const signer =new hre.ethers.Wallet(taskArgs.private, hre.ethers.provider);
+  let unsignedTx = {
+    data: abi.encodeFunctionData('setWCKBMin', [hre.ethers.BigNumber.from(taskArgs.amount)]),
+    to: hre.ethers.utils.getAddress('0xF67Bc4E50d1df92b0E4C61794A4517AF6a995CB2'),
+  };
+  unsignedTx = await signer.populateTransaction(unsignedTx);
+  unsignedTx.nonce = await signer.getTransactionCount() + 1;
+  const signedTx = await signer.signTransaction(unsignedTx);
+  const tx = await hre.ethers.provider.sendTransaction(signedTx);
+  const receipt = await tx.wait();
+  console.log(receipt);
+});
+
+task('approveWCKB').addParam('private').setAction(async (taskArgs, hre) => {
+  const abi = new hre.ethers.utils.Interface(require('./artifacts/contracts/MirrorToken.sol/MirrorToken.json').abi);
+  const signer =new hre.ethers.Wallet(taskArgs.private, hre.ethers.provider);
+  let unsignedTx = {
+    data: abi.encodeFunctionData('approve', ['0xF67Bc4E50d1df92b0E4C61794A4517AF6a995CB2', hre.ethers.BigNumber.from(100000000000)]),
+    to: hre.ethers.utils.getAddress('0x4af5ec5e3d29d9ddd7f4bf91a022131c41b72352'),
   };
   unsignedTx = await signer.populateTransaction(unsignedTx);
   unsignedTx.nonce = await signer.getTransactionCount() + 1;
