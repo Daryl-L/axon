@@ -65,6 +65,11 @@ task('crossToken', 'cross token').addParam('to').addParam('token').addParam('amo
   const signedTx = await signer.signTransaction(unsignedTx);
   const tx = await hre.ethers.provider.sendTransaction(signedTx);
   const receipt = await tx.wait();
+  console.log(receipt.logs.map((x) => {
+    if (x.address == '0xF67Bc4E50d1df92b0E4C61794A4517AF6a995CB2') {
+      return abi.parseLog(x);
+    }
+  }))
   console.log(receipt);
 });
 
@@ -110,7 +115,7 @@ task('setTokenConfig').addParam('token').addParam('threshold').addParam('fee').a
   const abi = new hre.ethers.utils.Interface(require('./artifacts/contracts/crosschain.sol/CrossChain.json').abi);
   const signer =new hre.ethers.Wallet(taskArgs.private, hre.ethers.provider);
   let unsignedTx = {
-    data: abi.encodeFunctionData('setTokenConfig', [taskArgs.token, [hre.ethers.BigNumber.from(taskArgs.threshold), hre.ethers.BigNumber.from(taskArgs.fee)]]),
+    data: abi.encodeFunctionData('setTokenConfig', [taskArgs.token, [hre.ethers.BigNumber.from(taskArgs.fee), hre.ethers.BigNumber.from(taskArgs.threshold)]]),
     to: hre.ethers.utils.getAddress('0xF67Bc4E50d1df92b0E4C61794A4517AF6a995CB2'),
   };
   unsignedTx = await signer.populateTransaction(unsignedTx);
@@ -158,6 +163,20 @@ task('getTransaction').addParam('tx').setAction(async (taskArgs, hre) => {
 task('checkTxHash').addParam('hash').setAction(async (args, hre) => {
   console.log('check tx hash:', args.hash);
   console.log(await hre.ethers.provider.getTransaction(args.hash));
+})
+
+task('generateWallet', '', async (taskArgs, hre) => {
+  const wallet = hre.ethers.Wallet.createRandom();
+  console.log(await wallet.getAddress());
+  console.log(wallet.address);
+  console.log(wallet.privateKey);
+});
+
+task('getLimitTxes', '', async (taskArgs, hre) => {
+  const abi = new hre.ethers.utils.Interface(require('./artifacts/contracts/crosschain.sol/CrossChain.json').abi);
+  const signer = await hre.ethers.getSigner();
+  const contract = new hre.ethers.Contract('0xF67Bc4E50d1df92b0E4C61794A4517AF6a995CB2', abi, signer);
+  console.log(await contract.limitTxes());
 })
 
 // You need to export an object to set up your config
